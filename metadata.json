@@ -1,0 +1,6 @@
+{
+  "name": "HiddenBrains Lead Qualification Tool",
+  "description": "HiddenBrains Business Analyst — Lead Qualification & Approach SOP Engine powered by Gemini AI",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
