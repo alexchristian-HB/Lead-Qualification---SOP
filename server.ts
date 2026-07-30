@@ -617,7 +617,14 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), "dist");
+    const possibleDistPaths = [
+      path.join(process.cwd(), "dist"),
+      __dirname,
+      path.join(__dirname, "..", "dist"),
+      process.cwd(),
+    ];
+    const distPath = possibleDistPaths.find((p) => fs.existsSync(path.join(p, "index.html"))) || possibleDistPaths[0];
+
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
       // Return 404 for missing static assets or API routes instead of HTML
