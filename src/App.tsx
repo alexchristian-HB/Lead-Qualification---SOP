@@ -71,7 +71,7 @@ export default function App() {
     setCurrentInput(input);
 
     try {
-      const res = await fetch('/api/qualify', {
+      let res = await fetch('/api/qualify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +79,23 @@ export default function App() {
         body: JSON.stringify(input),
       });
 
-      const data = await res.json();
+      // Fallback for static PHP shared hosting
+      if (!res.ok && res.status === 404) {
+        res = await fetch('./api.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(input),
+        });
+      }
+
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        throw new Error('Server returned invalid response format. Ensure web server rewrite rules or api.php are enabled.');
+      }
 
       if (!res.ok || !data.success || !data.report) {
         const errorText = data.error || 'Failed to qualify lead.';
