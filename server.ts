@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 
@@ -599,6 +600,17 @@ Please perform the 3-Axis analysis, composite scoring, Red Flag checks, Thin-Inf
 
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
+    // If a dist folder exists from a previous build, remove it in dev mode so Vite serves live source code
+    const distPath = path.join(process.cwd(), "dist");
+    if (fs.existsSync(distPath)) {
+      try {
+        fs.rmSync(distPath, { recursive: true, force: true });
+        console.log("Cleaned stale dist directory for dev mode.");
+      } catch (e) {
+        console.warn("Could not remove dist directory:", e);
+      }
+    }
+
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -608,6 +620,10 @@ async function startServer() {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
+      // Return 404 for missing static assets or API routes instead of HTML
+      if (req.path.startsWith("/api") || req.path.match(/\.(js|css|json|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|map)$/i)) {
+        return res.status(404).send("Asset not found");
+      }
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
